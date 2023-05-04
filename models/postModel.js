@@ -21,28 +21,13 @@ const postSchema = new mongoose.Schema(
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
       },
-    ], // acutalizar cuando otro usuario le da like
-    comments: [
+    ],
+    comment: [
       {
-        author: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-          required: true,
-        },
-        text: {
-          type: String,
-          required: true,
-        },
-        createdAt: {
-          type: Date,
-          default: Date.now,
-        },
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Comment",
       },
     ],
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -50,11 +35,12 @@ const postSchema = new mongoose.Schema(
     },
   },
   {
+    timestamps: true,
     toJSON: {
       transform: function (doc, ret) {
         delete ret._id;
         delete ret.__v;
-        delete ret.active;
+        // delete ret.active;
       },
     },
   }

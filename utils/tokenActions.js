@@ -22,7 +22,8 @@ exports.setToken = (user, req, res) => {
   res.cookie("jwt", token, {
     expires:
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
-    httpOnly: true,
+    // secure: true,
+    httpOnly: true, // avoid that the token could be modifi
   });
 
   user.password = undefined;

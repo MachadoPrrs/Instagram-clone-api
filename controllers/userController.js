@@ -20,8 +20,16 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     });
   }
   // filter data
-  const filter = filterData(req.body, "username", "name", "email");
-  //TODO: add the photo
+  const filter = filterData(
+    req.body,
+    "username",
+    "name",
+    "email",
+    "bio",
+    "phonenumber",
+    "gender"
+  );
+  //TODO: add a photo
 
   // update doc
   const updateDocument = await User.findByIdAndUpdate(req.user.id, filter, {

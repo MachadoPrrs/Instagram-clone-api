@@ -12,20 +12,35 @@ const {
 const {
   validateCreate,
   validateLogin,
+  validateForgotPassword,
+  validateUpdatePassword,
+  validateResetPassword,
+  validateMe,
+  validateDeleteUser,
 } = require("../validators/userValidator");
 const { updateMe, deleteMe } = require("../controllers/userController");
+
+const { loginLimiter, createAccountLimiter } = require("../utils/rateLimit");
 
 const router = express.Router();
 
 // router.route("/signup").post(signup);.
-router.post("/signup", validateCreate, signup);
-router.post("/login", validateLogin, login);
+router.post("/signup", validateCreate, createAccountLimiter, signup);
+router.post("/login", validateLogin, loginLimiter, login);
 router.get("/logout", logout);
 
-router.post("/forgotPassword", forgotPassword);
-router.patch("/resetPassword/:token", resetPassword);
+router.post("/forgotPassword", validateForgotPassword, forgotPassword);
+router.patch("/resetPassword/:token", validateResetPassword, resetPassword);
 
-router.patch("/updateMyPassword", protect, updatePassword);
-router.patch("/updateMe", protect, updateMe);
-router.delete("/deleteMe", protect, deleteMe);
+router.patch(
+  "/updateMyPassword",
+  protect,
+  validateUpdatePassword,
+  updatePassword
+);
+
+router.patch("/updateMe", protect, validateMe, updateMe);
+
+router.delete("/deleteMe", protect, validateDeleteUser, deleteMe);
+
 module.exports = router;

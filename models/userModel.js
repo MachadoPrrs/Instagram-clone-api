@@ -45,7 +45,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "no-profile-picture.jpg",
     },
-    // posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }], // acutalizar cuando el usuario postee algo
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
@@ -56,6 +55,7 @@ const userSchema = new mongoose.Schema(
     },
   },
   {
+    timestamps: true,
     toJSON: {
       transform: function (doc, ret) {
         delete ret._id;

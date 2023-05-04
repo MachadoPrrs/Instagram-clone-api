@@ -1,9 +1,27 @@
 const express = require("express");
-const { getAllPosts, createPost } = require("../controllers/postController");
+
+const {
+  getAllPosts,
+  createPost,
+  deletePost,
+  updatePost,
+} = require("../controllers/postController");
+
 const { protect } = require("../controllers/authController");
+
+const {
+  validateDeletePost,
+  validateCreatePost,
+  validateUpdatePost,
+} = require("../validators/postValidator");
 
 const router = express.Router();
 
-router.route("/").get(protect, getAllPosts).post(protect, createPost);
+//TODO AGREGAR VALIDACIONES
+router.get("/", protect, getAllPosts);
+router.post("/", protect, validateCreatePost, createPost);
+
+router.patch("/:_id", protect, validateUpdatePost, updatePost);
+router.delete("/:_id", protect, validateDeletePost, deletePost);
 
 module.exports = router;

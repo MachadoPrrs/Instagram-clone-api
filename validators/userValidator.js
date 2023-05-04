@@ -1,5 +1,5 @@
 const { validateResult } = require("./validateHelper");
-const { body, check } = require("express-validator");
+const { body, check, param } = require("express-validator");
 
 exports.validateCreate = [
   body("username")
@@ -11,7 +11,7 @@ exports.validateCreate = [
     .exists()
     .not()
     .isEmpty()
-    .withMessage("Passord is required")
+    .withMessage("Password is required")
     .isLength({ min: 8, max: 20 })
     .withMessage(
       "Password must be at least 8 characters long and max 20 characters long"
@@ -41,7 +41,7 @@ exports.validateLogin = [
     .exists()
     .not()
     .isEmpty()
-    .withMessage("Passord is required")
+    .withMessage("Password is required")
     .isLength({ min: 8, max: 20 })
     .withMessage(
       "Password must be at least 8 characters long and max 20 characters long"
@@ -50,4 +50,76 @@ exports.validateLogin = [
     .exists()
     .isEmail()
     .withMessage("Please provide a valid email address"),
+  (req, res, next) => {
+    validateResult(req, res, next);
+  },
+];
+
+exports.validateForgotPassword = [
+  body("email")
+    .exists()
+    .isEmail()
+    .withMessage("Please provide a valid email address"),
+  (req, res, next) => {
+    validateResult(req, res, next);
+  },
+];
+exports.validateResetPassword = [
+  body("passwordConfirm")
+    .custom((value, { req }) => value === req.body.password)
+    .withMessage("Passwords do not match"),
+  (req, res, next) => {
+    validateResult(req, res, next);
+  },
+];
+
+exports.validateMe = [
+  body("username")
+    .optional()
+    .notEmpty()
+    .isLength({ min: 5 })
+    .withMessage("Invalid username"),
+  body("name")
+    .optional()
+    .notEmpty()
+    .isLength({ min: 5 })
+    .withMessage("Invalid name"),
+  body("email").optional().notEmpty().isEmail().withMessage("Invalid email"),
+  body("phonenumber")
+    .notEmpty()
+    .optional()
+    .isMobilePhone("en-US")
+    .withMessage("Phone number must be a numeric value"),
+  body("gender").optional().notEmpty().withMessage("Invalid gender"),
+  body("profilePicture")
+    .optional()
+    .notEmpty()
+    .withMessage("Invalid profile picture"),
+  (req, res, next) => {
+    validateResult(req, res, next);
+  },
+];
+
+exports.validateUpdatePassword = [
+  body("password")
+    .exists()
+    .not()
+    .isEmpty()
+    .withMessage("Password is required")
+    .isLength({ min: 8, max: 20 })
+    .withMessage(
+      "Password must be at least 8 characters long and max 20 characters long"
+    ),
+  body("passwordConfirm")
+    .custom((value, { req }) => value === req.body.password)
+    .withMessage("Passwords do not match"),
+  (req, res, next) => {
+    validateResult(req, res, next);
+  },
+];
+exports.validateDeleteUser = [
+  param("/:_id").isMongoId().withMessage("Invalid id"),
+  (req, res, next) => {
+    validateResult(req, res, next);
+  },
 ];
