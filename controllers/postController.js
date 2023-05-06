@@ -1,15 +1,15 @@
-const User = require("../models/userModel");
 const Post = require("../models/postModel");
 const catchAsync = require("../utils/catchAsync");
+const AppError = require("../utils/appError");
 
 //TODO: create a function that prevent unauthorized modifications
-// const checkPostOwnership = function (_id) {};
+// const checkPostOwnership = function (_id, status, statusMessage) {};
 
 /**
  * This function retrieves all posts and returns them as a JSON response with a success message and the
  * number of results.
  */
-exports.getAllPosts = catchAsync(async (req, res) => {
+exports.getAllPosts = catchAsync(async (req, res, next) => {
   const posts = await Post.find()
     .populate({
       path: "comment",
@@ -27,28 +27,17 @@ exports.getAllPosts = catchAsync(async (req, res) => {
   });
 });
 
+// TODO: CREAR getPostById
+
 /**
  * This function creates a new post and sends a response with the new post data or an error message.
  */
-exports.createPost = catchAsync(async (req, res) => {
-  // set the user id from the protect middleware
-  const { _id: user } = req.user;
-
-  // get the author name from the id
-  const authorName = await User.findById(user);
-  // check if the author exist in the db
-  if (!authorName) {
-    return res.status(404).json({
-      status: "fail",
-      message: "Username not found",
-    });
-  }
-  // set the author name
-  const author = authorName.username;
-
-  const postData = { ...req.body, author, user };
-
-  const newPost = await Post.create(postData);
+exports.createPost = catchAsync(async (req, res, next) => {
+  const newPost = await Post.create({
+    ...req.body,
+    author: req.user.username, // set the author from the protect middleware
+    user: req.user._id, // set the user protect middleware
+  });
 
   res.status(201).json({
     message: "Success",
@@ -64,17 +53,12 @@ exports.updatePost = catchAsync(async (req, res, next) => {
   const post = await Post.findById(_id);
 
   if (!post) {
-    return res.status(404).json({
-      status: "fail",
-      message: "Post not found",
-    });
+    return next(new AppError("There is no post with this ID", 404));
   }
 
   // Prevent unauthorized modifications by only allowing the post creator to make changes
   if (post.user.toString() !== _id.toString()) {
-    return res.status(403).json({
-      message: "You are not allowed to update this post",
-    });
+    return next(new AppError("You are not allowed to update this post", 403));
   }
 
   const updatedPost = await Post.findByIdAndUpdate(_id, req.body, {
@@ -97,10 +81,15 @@ exports.deletePost = catchAsync(async (req, res, next) => {
 
   // Prevent unauthorized modifications by only allowing the post creator to make changes
   const post = await Post.findById(_id);
+
+  // check if the id is valid
+  if (!post) {
+    return next(new AppError("There is no post with this ID", 404));
+  }
+
+  // check if the user is the owner of the post
   if (post.user.toString() !== _id.toString()) {
-    return res.status(403).json({
-      message: "You are not allowed to update this post",
-    });
+    return next(new AppError("You are not allowed to update this post", 403));
   }
 
   await Post.findByIdAndRemove(_id);

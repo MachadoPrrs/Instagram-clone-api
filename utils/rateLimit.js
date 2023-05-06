@@ -9,7 +9,10 @@ const loginLimiter = rateLimit({
 });
 
 const createAccountLimiter = rateLimit({
-  windowMs: 24 * 60 * 60 * 1000, // 1 hour
+  /* `windowMs: 24 * 60 * 60 * 1000` is setting the time window for the rate limit to 24 hours (1 day)
+  in milliseconds. This means that the rate limit will apply to requests made within this time
+  frame. */
+  windowMs: 24 * 60 * 60 * 1000,
   max: 2, // Limit each IP to 5 create account requests per `window` (here, per hour)
   message:
     "Too many accounts created from this IP, please try again after an hour",

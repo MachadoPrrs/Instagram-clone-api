@@ -8,37 +8,48 @@ const hpp = require("hpp");
 const postsRouter = require("./routers/postRouter");
 const userRouter = require("./routers/userRouter");
 const commentRouter = require("./routers/commentRouter");
+const AppError = require("./utils/appError");
+const globalErrorHandler = require("./controllers/errorController");
 
 const app = express();
 
 //* GLOBAL MIDDLEWARES
 
-//? Set security http headers
+// Set security http headers
 app.use(helmet());
 
-//? dev logging
+// dev logging
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
-//? Body parser, reading data from body into req.body
+// Body parser, reading data from body into req.body
 app.use(express.json());
 
-//? Data sanitization => sql injection => {"$gt":""}
+// Data sanitization => sql injection => {"$gt":""}
 app.use(mongoSanitize());
 
-//?  Data sanitization => XSS => clean html code
+//  Data sanitization => XSS => clean html code
 app.use(xss());
 
-//? static files
+// static files
 app.use(express.static(`${__dirname}/public`));
 
-//? prevent paremeter pollution
+// prevent paremeter pollution
 app.use(hpp());
 
-//? Routes
+// Routes
 app.use("/api/v1/posts", postsRouter);
 app.use("/api/v1/auth", userRouter);
 app.use("/api/v1/comments", commentRouter);
+
+// Handling unhandling routes
+app.all("*", (req, res, next) => {
+  // pass the error
+  next(new AppError(`Can not find ${req.originalUrl}`, 404));
+});
+
+// Error handling middleware
+app.use(globalErrorHandler);
 
 module.exports = app;
