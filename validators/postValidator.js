@@ -26,6 +26,13 @@ exports.validateUpdatePost = [
   },
 ];
 
+exports.validateGetById = [
+  param("_id").isMongoId().withMessage("Invalid id"),
+  (req, res, next) => {
+    validateResult(req, res, next);
+  },
+];
+
 exports.validateDeletePost = [
   param("_id").isMongoId().withMessage("Invalid id"),
   (req, res, next) => {

@@ -43,7 +43,7 @@ const userSchema = new mongoose.Schema(
     },
     profilePicture: {
       type: String,
-      default: "no-profile-picture.jpg",
+      default: "default-user-profile.png",
     },
     passwordChangedAt: Date,
     passwordResetToken: String,

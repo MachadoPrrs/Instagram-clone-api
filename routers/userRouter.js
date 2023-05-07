@@ -20,7 +20,11 @@ const {
   validateDeleteUser,
 } = require("../validators/userValidator");
 
-const { updateMe, deleteMe } = require("../controllers/userController");
+const {
+  updateMe,
+  deleteMe,
+  uploadProfilePhoto,
+} = require("../controllers/userController");
 
 const { loginLimiter, createAccountLimiter } = require("../utils/rateLimit");
 
@@ -42,7 +46,7 @@ router.patch(
   updatePassword
 );
 
-router.patch("/updateMe", protect, validateMe, updateMe);
+router.patch("/updateMe", protect, validateMe, uploadProfilePhoto, updateMe);
 
 router.delete("/deleteMe", protect, validateDeleteUser, deleteMe);
 

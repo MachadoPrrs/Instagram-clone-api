@@ -13,6 +13,7 @@ exports.getAllPosts = catchAsync(async (req, res, next) => {
   const posts = await Post.find()
     .populate({
       path: "comment",
+      select: "text createdAt",
       populate: {
         path: "author",
         select: "username",
@@ -28,6 +29,37 @@ exports.getAllPosts = catchAsync(async (req, res, next) => {
 });
 
 // TODO: CREAR getPostById
+exports.getPostById = catchAsync(async (req, res, next) => {
+  const { _id } = req.params;
+  // find the post
+  const post = await Post.findById(_id)
+    .populate({
+      path: "comment",
+      select: "text createdAt",
+      populate: {
+        path: "author",
+        select: "username",
+      },
+    })
+    .exec();
+
+  // check if the post is in the db
+  if (!post) {
+    return next(new AppError("There is no post with this ID", 404));
+  }
+
+  // Prevent unauthorized modifications by only allowing the post creator to make changes
+  // if (post.user.toString() !== req.user._id.toString()) {
+  //   return next(new AppError("You are not allowed to update this post", 403));
+  // }
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      post,
+    },
+  });
+});
 
 /**
  * This function creates a new post and sends a response with the new post data or an error message.
@@ -57,7 +89,7 @@ exports.updatePost = catchAsync(async (req, res, next) => {
   }
 
   // Prevent unauthorized modifications by only allowing the post creator to make changes
-  if (post.user.toString() !== _id.toString()) {
+  if (post.user.toString() !== req.user._id.toString()) {
     return next(new AppError("You are not allowed to update this post", 403));
   }
 
@@ -88,8 +120,8 @@ exports.deletePost = catchAsync(async (req, res, next) => {
   }
 
   // check if the user is the owner of the post
-  if (post.user.toString() !== _id.toString()) {
-    return next(new AppError("You are not allowed to update this post", 403));
+  if (post.user.toString() !== req.user._id.toString()) {
+    return next(new AppError("You are not allowed to delete this post", 403));
   }
 
   await Post.findByIdAndRemove(_id);
