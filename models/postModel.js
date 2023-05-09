@@ -8,10 +8,8 @@ const postSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    image: {
-      type: String,
-      required: true,
-    },
+    image: String,
+    video: String,
     caption: {
       type: String,
       minlength: 2,

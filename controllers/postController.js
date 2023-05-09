@@ -3,7 +3,6 @@ const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 
 //TODO: create a function that prevent unauthorized modifications
-// const checkPostOwnership = function (_id, status, statusMessage) {};
 
 /**
  * This function retrieves all posts and returns them as a JSON response with a success message and the
@@ -28,7 +27,6 @@ exports.getAllPosts = catchAsync(async (req, res, next) => {
   });
 });
 
-// TODO: CREAR getPostById
 exports.getPostById = catchAsync(async (req, res, next) => {
   const { _id } = req.params;
   // find the post
@@ -65,12 +63,26 @@ exports.getPostById = catchAsync(async (req, res, next) => {
  * This function creates a new post and sends a response with the new post data or an error message.
  */
 exports.createPost = catchAsync(async (req, res, next) => {
-  const newPost = await Post.create({
-    ...req.body,
-    author: req.user.username, // set the author from the protect middleware
-    user: req.user._id, // set the user protect middleware
-  });
+  const data =
+    req.file.fieldname === "video"
+      ? {
+          ...req.body,
+          author: req.user.username, // set the author from the protect middleware
+          user: req.user._id, // set the user protect middleware
+          video: req.file.filename,
+        }
+      : req.file.fieldname === "image"
+      ? {
+          ...req.body,
+          author: req.user.username,
+          user: req.user._id,
+          image: req.file.filename,
+        }
+      : null;
 
+  const newPost = await Post.create(data);
+
+  console.log(req.file);
   res.status(201).json({
     message: "Success",
     data: {
@@ -79,7 +91,7 @@ exports.createPost = catchAsync(async (req, res, next) => {
   });
 });
 
-//TODO: update the photo
+//! update the photo
 exports.updatePost = catchAsync(async (req, res, next) => {
   const { _id } = req.params;
   const post = await Post.findById(_id);
@@ -93,10 +105,19 @@ exports.updatePost = catchAsync(async (req, res, next) => {
     return next(new AppError("You are not allowed to update this post", 403));
   }
 
-  const updatedPost = await Post.findByIdAndUpdate(_id, req.body, {
+  const data =
+    req.file.fieldname === "video"
+      ? { ...req.body, video: req.file.filename }
+      : req.file.fieldname === "image"
+      ? { ...req.body, image: req.file.filename }
+      : null;
+
+  const updatedPost = await Post.findByIdAndUpdate(_id, data, {
     new: true,
     runValidators: true,
   });
+
+  console.log(req.file.filename);
 
   res.status(200).json({
     status: "success",

@@ -1,9 +1,10 @@
 const { validateResult } = require("./validateHelper");
-const { param, body } = require("express-validator");
+const { param, body, check } = require("express-validator");
 
 exports.validateCreatePost = [
-  body("image").notEmpty().withMessage("The image is required"),
-  body("caption")
+  body("image").notEmpty().optional().withMessage("Invalid image URL"),
+  body("video").notEmpty().optional().withMessage("Invalid video"),
+  check("caption")
     .notEmpty()
     .withMessage("The caption is required")
     .isLength({ min: 2 })
