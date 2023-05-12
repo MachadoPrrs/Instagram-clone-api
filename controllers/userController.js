@@ -1,33 +1,8 @@
-const multer = require("multer");
-
 const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 
 // MULTER STORAGE ==> http://localhost:3000/img/users/default-user-profile.png
-const multerStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "public/img/users");
-  },
-  filename: function (req, file, cb) {
-    const ext = file.mimetype.split("/")[1];
-    cb(null, `user-${req.user.id}-${Date.now()}.${ext}`);
-  },
-});
-
-// FILTER IMG
-const filterMulter = (req, file, cb) => {
-  if (file.mimetype.startsWith("image")) {
-    cb(null, true);
-  } else {
-    cb(new AppError("Upload only images!", 400), false);
-  }
-};
-
-const upload = multer({ storage: multerStorage, fileFilter: filterMulter });
-
-// UPLOAD FILE
-exports.uploadProfilePhoto = upload.single("profilePicture");
 
 exports.updateMe = catchAsync(async (req, res, next) => {
   const { password, passwordConfirm } = req.body;
@@ -70,5 +45,25 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
   res.status(204).json({
     status: "success",
     data: null,
+  });
+});
+
+exports.following = catchAsync(async (req, res, next) => {
+  const { userData } = req.body.followingUsers;
+  const user = await User.findOne(userData);
+
+  if (!user) {
+    return next(new AppError("User not found", 404));
+  }
+
+  await User.findByIdAndUpdate(req.user.id, {
+    followingUsers: user._id,
+  });
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      follow: `Following user ${user.username}`,
+    },
   });
 });

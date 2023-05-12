@@ -8,8 +8,12 @@ const postSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    image: String,
-    video: String,
+    image: {
+      type: String,
+    },
+    video: {
+      type: String,
+    },
     caption: {
       type: String,
       minlength: 2,
@@ -25,6 +29,12 @@ const postSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Comment",
+      },
+    ],
+    taggedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
       },
     ],
     user: {

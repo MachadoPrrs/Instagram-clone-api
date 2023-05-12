@@ -5,6 +5,7 @@ class UploadFiles {
   paths = {
     video: "public/videos",
     img: "public/img/posts",
+    users: "public/img/users",
   };
 
   constructor(type) {

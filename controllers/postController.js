@@ -1,14 +1,48 @@
 const Post = require("../models/postModel");
+const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 
 //TODO: create a function that prevent unauthorized modifications
+
+// This function displays the posts of a user only if they are following them.
+exports.getNewsFeed = catchAsync(async (req, res, next) => {
+  // Get the current user
+  const currentUser = await User.findById(req.user.id);
+
+  // Gets the users that the current user is following
+  const followingIds = currentUser.followingUsers.map((user) => user._id);
+
+  // Searches for the posts of followed users and populates their comments and tagged users.
+  const posts = await Post.find({ user: { $in: followingIds } })
+    .populate({
+      path: "comment",
+      select: "text createdAt",
+      populate: {
+        path: "author",
+        select: "username",
+      },
+    })
+    .populate({
+      path: "taggedUsers",
+      select: "username",
+    })
+    .exec();
+
+  // Show the results
+  res.status(200).json({
+    results: posts.length,
+    msg: "Success",
+    posts,
+  });
+});
 
 /**
  * This function retrieves all posts and returns them as a JSON response with a success message and the
  * number of results.
  */
 exports.getAllPosts = catchAsync(async (req, res, next) => {
+  // Busca todos los posts y populamos los comentarios y los usuarios etiquetados
   const posts = await Post.find()
     .populate({
       path: "comment",
@@ -18,8 +52,13 @@ exports.getAllPosts = catchAsync(async (req, res, next) => {
         select: "username",
       },
     })
+    .populate({
+      path: "taggedUsers",
+      select: "username",
+    })
     .exec();
 
+  // Envía una respuesta con los resultados y los posts
   res.status(200).json({
     results: posts.length,
     msg: "Success",
@@ -38,6 +77,10 @@ exports.getPostById = catchAsync(async (req, res, next) => {
         path: "author",
         select: "username",
       },
+    })
+    .populate({
+      path: "taggedUsers",
+      select: "username",
     })
     .exec();
 
@@ -63,6 +106,21 @@ exports.getPostById = catchAsync(async (req, res, next) => {
  * This function creates a new post and sends a response with the new post data or an error message.
  */
 exports.createPost = catchAsync(async (req, res, next) => {
+  // search taggedUsers
+  let taggedUser = "";
+  // Busca el usuario que se está etiquetando
+  if (req.body.taggedUsers) {
+    taggedUser = await User.findOne({ username: req.body.taggedUsers });
+  }
+
+  if (taggedUser !== "") {
+    // Si no se encuentra el usuario, envía un mensaje de error
+    if (!taggedUser) {
+      return next(new AppError("No user found with this username", 404));
+    }
+  }
+
+  // Verify whether the user is uploading an image or a video.
   const data =
     req.file.fieldname === "video"
       ? {
@@ -80,9 +138,12 @@ exports.createPost = catchAsync(async (req, res, next) => {
         }
       : null;
 
+  if (taggedUser !== "") {
+    data.taggedUsers = taggedUser._id;
+  }
+
   const newPost = await Post.create(data);
 
-  console.log(req.file);
   res.status(201).json({
     message: "Success",
     data: {
@@ -91,7 +152,6 @@ exports.createPost = catchAsync(async (req, res, next) => {
   });
 });
 
-//! update the photo
 exports.updatePost = catchAsync(async (req, res, next) => {
   const { _id } = req.params;
   const post = await Post.findById(_id);

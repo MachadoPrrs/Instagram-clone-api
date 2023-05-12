@@ -1,4 +1,7 @@
 const express = require("express");
+const UploadFiles = require("../uploadFiles/uploadFiles");
+
+const uploadIMG = new UploadFiles("users").upload;
 
 const {
   signup,
@@ -23,7 +26,7 @@ const {
 const {
   updateMe,
   deleteMe,
-  uploadProfilePhoto,
+  following,
 } = require("../controllers/userController");
 
 const { loginLimiter, createAccountLimiter } = require("../utils/rateLimit");
@@ -31,6 +34,7 @@ const { loginLimiter, createAccountLimiter } = require("../utils/rateLimit");
 const router = express.Router();
 
 // router.route("/signup").post(signup);.
+router.patch("/follow", protect, following);
 router.post("/signup", createAccountLimiter, validateCreate, signup);
 router.post("/login", loginLimiter, validateLogin, login);
 router.get("/logout", logout);
@@ -46,7 +50,13 @@ router.patch(
   updatePassword
 );
 
-router.patch("/updateMe", protect, validateMe, uploadProfilePhoto, updateMe);
+router.patch(
+  "/updateMe",
+  protect,
+  validateMe,
+  uploadIMG.single("profilePicture"),
+  updateMe
+);
 
 router.delete("/deleteMe", protect, validateDeleteUser, deleteMe);
 

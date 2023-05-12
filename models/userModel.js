@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
       minlength: 4,
       maxlength: 20,
+      unique: true,
     },
     password: {
       type: String,
@@ -45,6 +46,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "default-user-profile.png",
     },
+    followingUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,

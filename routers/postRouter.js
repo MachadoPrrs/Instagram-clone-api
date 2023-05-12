@@ -10,6 +10,7 @@ const {
   deletePost,
   updatePost,
   getPostById,
+  getNewsFeed,
 } = require("../controllers/postController");
 
 const { protect } = require("../controllers/authController");
@@ -24,6 +25,8 @@ const {
 const router = express.Router();
 
 router.get("/", protect, getAllPosts);
+router.get("/getFeed", protect, getNewsFeed);
+
 router.post("/image", protect, uploadIMG.single("image"), createPost);
 router.post("/video", protect, uploadVIDEO.single("video"), createPost);
 
