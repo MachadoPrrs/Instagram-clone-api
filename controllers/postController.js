@@ -5,6 +5,52 @@ const AppError = require("../utils/appError");
 
 //TODO: create a function that prevent unauthorized modifications
 
+exports.likePost = catchAsync(async (req, res, next) => {
+  const { _id } = req.params;
+  const user = req.user._id;
+  // check if there's a post
+  const post = await Post.findById(_id);
+  if (!post) next(new AppError("There is no post with this id", 404));
+
+  // Check if the user has already liked the post
+  const userIndex = post.likes.indexOf(user);
+  if (userIndex !== -1) {
+    return next(new AppError("You have already liked this post", 400));
+  }
+
+  // update post
+  await Post.findByIdAndUpdate(_id, { $push: { likes: user } });
+
+  res.status(200).json({
+    status: "success",
+    message: "Post liked successfully",
+  });
+});
+
+exports.removeLike = catchAsync(async (req, res, next) => {
+  const { _id } = req.params;
+  const user = req.user._id;
+
+  // check if there's a post
+  const post = await Post.findById(_id);
+  if (!post) next(new AppError("There is no post with this id", 404));
+
+  // Check if the user has already liked the post
+  const userIndex = post.likes.indexOf(user);
+  if (userIndex === -1) {
+    return next(new AppError("You have not liked this post", 400));
+  }
+
+  // Remove the user's like from the post
+  post.likes.splice(userIndex, 1);
+  await post.save();
+
+  res.status(200).json({
+    status: "success",
+    message: "Post like removed successfully",
+  });
+});
+
 // This function displays the posts of a user only if they are following them.
 exports.getNewsFeed = catchAsync(async (req, res, next) => {
   // Get the current user

@@ -11,6 +11,8 @@ const {
   updatePost,
   getPostById,
   getNewsFeed,
+  likePost,
+  removeLike,
 } = require("../controllers/postController");
 
 const { protect } = require("../controllers/authController");
@@ -47,6 +49,10 @@ router.patch(
   uploadVIDEO.single("video"),
   updatePost
 );
+
+router.patch("/likePost/:_id", protect, likePost);
+
 router.delete("/:_id", protect, validateDeletePost, deletePost);
+router.delete("/likePost/:_id", protect, removeLike);
 
 module.exports = router;
