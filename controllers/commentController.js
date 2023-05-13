@@ -1,5 +1,7 @@
 const Comment = require("../models/commentModel");
 const Post = require("../models/postModel");
+const User = require("../models/userModel");
+const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 
 exports.getAllComments = catchAsync(async (req, res, next) => {
@@ -13,15 +15,25 @@ exports.getAllComments = catchAsync(async (req, res, next) => {
 });
 
 exports.commentPost = catchAsync(async (req, res, next) => {
+  // Comment a post
   const { _id: author } = req.user;
   const commentData = { ...req.body, author };
 
+  // search taggedUsers
+  if (req.body.taggedUsers && req.body.taggedUsers.length > 0) {
+    const taggedUsers = await User.find({
+      username: { $in: req.body.taggedUsers },
+    });
+    if (taggedUsers.length !== req.body.taggedUsers.length) {
+      return next(new AppError("One or more tagged users not found", 404));
+    }
+    commentData.taggedUsers = taggedUsers.map((user) => user._id);
+  }
+
+  // find if there is a post
   const post = await Post.findById(commentData.post);
   if (!post) {
-    return res.status(404).json({
-      status: "fail",
-      message: "Post not found",
-    });
+    return next(new AppError("Post not found", 404));
   }
 
   // set the comment id in the postmodel
@@ -43,4 +55,51 @@ exports.commentPost = catchAsync(async (req, res, next) => {
   });
 });
 
-// TODO: ADD UPDATE AND DELETE POST
+exports.updateComment = catchAsync(async (req, res, next) => {
+  const { _id } = req.params;
+  // check if there's a comment in the db
+  const comment = await Comment.findById(_id);
+  if (!comment)
+    return next(new AppError("There is no comment with this id", 404));
+
+  //check the comment owner
+  if (comment.author.toString() !== req.user.id.toString()) {
+    return next(
+      new AppError("You don't have permission to edit this comment.", 403)
+    );
+  }
+  // update the comment
+  const newComment = await Comment.findByIdAndUpdate(_id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      newComment,
+    },
+  });
+});
+
+exports.deleteComment = catchAsync(async (req, res, next) => {
+  const { _id } = req.params;
+  // check if there's a comment in the db
+  const comment = await Comment.findById(_id);
+  if (!comment)
+    return next(new AppError("There is no comment with this id", 404));
+
+  //check the comment owner
+  if (comment.author.toString() !== req.user.id.toString()) {
+    return next(
+      new AppError("You don't have permission to edit this comment.", 403)
+    );
+  }
+
+  await Comment.findByIdAndRemove(_id);
+
+  res.status(200).json({
+    status: "success",
+    data: null,
+  });
+});

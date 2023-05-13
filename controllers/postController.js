@@ -5,6 +5,31 @@ const AppError = require("../utils/appError");
 
 //TODO: create a function that prevent unauthorized modifications
 
+/**
+ * The VerifyData function checks if the uploaded file is a video or an image and returns the data with
+ * the author, user, and filename.
+ */
+const VerifyData = (req, res, next) => {
+  const data =
+    req.file.fieldname === "video"
+      ? {
+          ...req.body,
+          author: req.user.username, // set the author from the protect middleware
+          user: req.user._id, // set the user protect middleware
+          video: req.file.filename,
+        }
+      : req.file.fieldname === "image"
+      ? {
+          ...req.body,
+          author: req.user.username,
+          user: req.user._id,
+          image: req.file.filename,
+        }
+      : null;
+  return data;
+};
+
+/* `exports.likePost` is a function that allows a user to like a post. I */
 exports.likePost = catchAsync(async (req, res, next) => {
   const { _id } = req.params;
   const user = req.user._id;
@@ -27,6 +52,7 @@ exports.likePost = catchAsync(async (req, res, next) => {
   });
 });
 
+/* `exports.removeLike` is a function that removes a like from a post.  */
 exports.removeLike = catchAsync(async (req, res, next) => {
   const { _id } = req.params;
   const user = req.user._id;
@@ -152,40 +178,17 @@ exports.getPostById = catchAsync(async (req, res, next) => {
  * This function creates a new post and sends a response with the new post data or an error message.
  */
 exports.createPost = catchAsync(async (req, res, next) => {
-  // search taggedUsers
-  let taggedUser = "";
-  // Busca el usuario que se está etiquetando
-  if (req.body.taggedUsers) {
-    taggedUser = await User.findOne({ username: req.body.taggedUsers });
-  }
-
-  if (taggedUser !== "") {
-    // Si no se encuentra el usuario, envía un mensaje de error
-    if (!taggedUser) {
-      return next(new AppError("No user found with this username", 404));
-    }
-  }
-
   // Verify whether the user is uploading an image or a video.
-  const data =
-    req.file.fieldname === "video"
-      ? {
-          ...req.body,
-          author: req.user.username, // set the author from the protect middleware
-          user: req.user._id, // set the user protect middleware
-          video: req.file.filename,
-        }
-      : req.file.fieldname === "image"
-      ? {
-          ...req.body,
-          author: req.user.username,
-          user: req.user._id,
-          image: req.file.filename,
-        }
-      : null;
-
-  if (taggedUser !== "") {
-    data.taggedUsers = taggedUser._id;
+  const data = VerifyData(req, res, next);
+  // search taggedUsers
+  if (req.body.taggedUsers && req.body.taggedUsers.length > 0) {
+    const taggedUsers = await User.find({
+      username: { $in: req.body.taggedUsers },
+    });
+    if (taggedUsers.length !== req.body.taggedUsers.length) {
+      return next(new AppError("One or more tagged users not found", 404));
+    }
+    data.taggedUsers = taggedUsers.map((user) => user._id);
   }
 
   const newPost = await Post.create(data);
@@ -198,6 +201,7 @@ exports.createPost = catchAsync(async (req, res, next) => {
   });
 });
 
+/* `exports.updatePost` is a function that updates a post in the database.*/
 exports.updatePost = catchAsync(async (req, res, next) => {
   const { _id } = req.params;
   const post = await Post.findById(_id);
@@ -233,8 +237,7 @@ exports.updatePost = catchAsync(async (req, res, next) => {
   });
 });
 
-/* This code exports a function called `deletePost` that deletes a post from the database. It uses the
-`catchAsync` middleware to handle any errors that may occur during the execution of the function. */
+/* This code exports a function called `deletePost` that deletes a post from the database.*/
 exports.deletePost = catchAsync(async (req, res, next) => {
   const { _id } = req.params;
 
@@ -258,3 +261,6 @@ exports.deletePost = catchAsync(async (req, res, next) => {
     data: null,
   });
 });
+
+//TODO: create a function that removes a tagged user
+//TODO: Add an api features, feature send message and search user
