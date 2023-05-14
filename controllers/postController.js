@@ -2,6 +2,7 @@ const Post = require("../models/postModel");
 const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
+const QueryBuilder = require("../utils/queries");
 
 //TODO: create a function that prevent unauthorized modifications
 
@@ -79,6 +80,7 @@ exports.removeLike = catchAsync(async (req, res, next) => {
 
 // This function displays the posts of a user only if they are following them.
 exports.getNewsFeed = catchAsync(async (req, res, next) => {
+  console.log(req.query);
   // Get the current user
   const currentUser = await User.findById(req.user.id);
 
@@ -86,20 +88,12 @@ exports.getNewsFeed = catchAsync(async (req, res, next) => {
   const followingIds = currentUser.followingUsers.map((user) => user._id);
 
   // Searches for the posts of followed users and populates their comments and tagged users.
-  const posts = await Post.find({ user: { $in: followingIds } })
-    .populate({
-      path: "comment",
-      select: "text createdAt",
-      populate: {
-        path: "author",
-        select: "username",
-      },
-    })
-    .populate({
-      path: "taggedUsers",
-      select: "username",
-    })
-    .exec();
+  const features = new QueryBuilder(
+    Post.find({ user: { $in: followingIds } }),
+    req.query
+  ).filter();
+
+  const posts = await features.execPopulate();
 
   // Show the results
   res.status(200).json({
@@ -115,20 +109,9 @@ exports.getNewsFeed = catchAsync(async (req, res, next) => {
  */
 exports.getAllPosts = catchAsync(async (req, res, next) => {
   // Busca todos los posts y populamos los comentarios y los usuarios etiquetados
-  const posts = await Post.find()
-    .populate({
-      path: "comment",
-      select: "text createdAt",
-      populate: {
-        path: "author",
-        select: "username",
-      },
-    })
-    .populate({
-      path: "taggedUsers",
-      select: "username",
-    })
-    .exec();
+  const features = new QueryBuilder(Post.find(), req.query).filter();
+
+  const posts = await features.execPopulate();
 
   // Envía una respuesta con los resultados y los posts
   res.status(200).json({
@@ -262,5 +245,4 @@ exports.deletePost = catchAsync(async (req, res, next) => {
   });
 });
 
-//TODO: create a function that removes a tagged user
-//TODO: Add an api features, feature send message and search user
+//TODO: Add a feature send message and search posts or users
