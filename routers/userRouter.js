@@ -33,7 +33,6 @@ const { loginLimiter, createAccountLimiter } = require("../utils/rateLimit");
 
 const router = express.Router();
 
-// router.route("/signup").post(signup);.
 router.patch("/follow", protect, following);
 router.post("/signup", createAccountLimiter, validateCreate, signup);
 router.post("/login", loginLimiter, validateLogin, login);

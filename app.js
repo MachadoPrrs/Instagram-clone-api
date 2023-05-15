@@ -9,6 +9,7 @@ const postsRouter = require("./routers/postRouter");
 const userRouter = require("./routers/userRouter");
 const commentRouter = require("./routers/commentRouter");
 const searchRouter = require("./routers/searchRouter");
+const sendMessageRouter = require("./routers/messageRouter");
 const AppError = require("./utils/appError");
 const globalErrorHandler = require("./controllers/errorController");
 
@@ -44,6 +45,7 @@ app.use("/api/v1/posts", postsRouter);
 app.use("/api/v1/auth", userRouter);
 app.use("/api/v1/comments", commentRouter);
 app.use("/api/v1/", searchRouter);
+app.use("/api/v1/sendMessage/", sendMessageRouter);
 
 // Handling unhandling routes
 app.all("*", (req, res, next) => {

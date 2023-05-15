@@ -6,6 +6,8 @@ class UploadFiles {
     video: "public/videos",
     img: "public/img/posts",
     users: "public/img/users",
+    messageImg: "public/message/img",
+    messageVd: "public/message/videos",
   };
 
   constructor(type) {

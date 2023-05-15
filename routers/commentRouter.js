@@ -10,7 +10,7 @@ const { protect } = require("../controllers/authController");
 
 const router = express.Router();
 
-// TODO: AGREGAR VALIDACIONES
+//! AGREGAR VALIDACIONES
 router.get("/", protect, getAllComments);
 router.post("/", protect, commentPost);
 router.patch("/:_id", protect, updateComment);

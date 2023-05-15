@@ -56,3 +56,4 @@ router.delete("/:_id", protect, validateDeletePost, deletePost);
 router.delete("/likePost/:_id", protect, removeLike);
 
 module.exports = router;
+//! añadir validaciones de delete y crear post
