@@ -4,8 +4,6 @@ const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const QueryBuilder = require("../utils/queries");
 
-//TODO: create a function that prevent unauthorized modifications
-
 /**
  * The VerifyData function checks if the uploaded file is a video or an image and returns the data with
  * the author, user, and filename.
@@ -121,6 +119,8 @@ exports.getAllPosts = catchAsync(async (req, res, next) => {
   });
 });
 
+/* `exports.getPostById` is a function that retrieves a post from the database by its ID and returns it
+as a JSON response.*/
 exports.getPostById = catchAsync(async (req, res, next) => {
   const { _id } = req.params;
   // find the post

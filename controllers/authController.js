@@ -6,13 +6,22 @@ const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
 const sendEmail = require("../utils/email");
 const AppError = require("../utils/appError");
+const { resetPasswordHtml, welcomeMessage } = require("../utils/templates");
 
+/**
+ * The function signToken generates a JSON web token with a given ID and expiration time using a secret
+ * key.
+ */
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 };
 
+/**
+ * The function creates and sends a JSON web token to the client with the user data and a success
+ * status code.
+ */
 const createSendToken = (user, statusCode, req, res) => {
   const token = signToken(user._id);
 
@@ -34,7 +43,8 @@ const createSendToken = (user, statusCode, req, res) => {
   });
 };
 
-//* CREATE AN ACCOUNT
+/* This code exports a function called `signup` that is responsible for creating a new user account. It
+first checks if the email provided in the request body already exists in the database.*/
 exports.signup = catchAsync(async (req, res, next) => {
   //This code is checking if the email provided in the request body already exists in the database.
   const { email } = req.body;
@@ -47,10 +57,25 @@ exports.signup = catchAsync(async (req, res, next) => {
   // Create a new user
   const newUser = await User.create(req.body);
 
-  createSendToken(newUser, 201, req, res);
+  try {
+    await sendEmail({
+      email: newUser.email,
+      subject: "Created account from Instragram Clone",
+      message: "Welcome to Instragram Clone",
+      html: welcomeMessage(newUser.username),
+    });
+    createSendToken(newUser, 201, req, res);
+  } catch (error) {
+    return res.status(500).json({
+      status: "fail",
+      message: "'There was an error sending the email. Try again later!'",
+    });
+  }
 });
 
-//* LOGIN
+/* This code exports a function called `login` that is responsible for authenticating a user by
+checking if the email and password provided in the request body match with the ones stored in the
+database.*/
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -66,8 +91,8 @@ exports.login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, req, res);
 });
 
-//* LOGOUT
-//! ARREGLAR EL LOGOUT
+/* `exports.logout` is a function that logs out the user by setting the JWT cookie to "loggedout" and
+setting the expiration time to 10 seconds. It then sends a JSON response with a status of "success". */
 exports.logout = (req, res) => {
   res.cookie("jwt", "loggedout", {
     expires: new Date(Date.now() + 10 * 1000),
@@ -76,11 +101,8 @@ exports.logout = (req, res) => {
   res.status(200).json({ status: "success" });
 };
 
-/*
-protege las rutas que requieren autenticación verificando 
-el token de acceso del usuario y asegurándose de que el 
-usuario aún existe y no ha cambiado su contraseña.
-*/
+/* `exports.protect` is a middleware function that checks if the user is authenticated by verifying the
+JWT token.  */
 exports.protect = catchAsync(async (req, res, next) => {
   let token = "";
   // check if there is a token
@@ -123,7 +145,8 @@ exports.protect = catchAsync(async (req, res, next) => {
   next();
 });
 
-//* FORGOT PASSWORD
+/* This code exports a function called `forgotPassword` that is responsible for generating a password
+reset token and sending it to the user's email address. */
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   // 1) Get user based on POSTed email
   const user = await User.findOne({ email: req.body.email });
@@ -141,16 +164,13 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     "host"
   )}/api/v1/auth/resetPassword/${resetToken}`;
 
-  // TODO: MEJORAR EL MENSAJE DE RESETEO
-  const message = `Forgot your password? Submit a Patch request with your new password and passwordConfirm to ${resetURL}.\nIf you did not forget your password, please ignore this email`;
-
   try {
     await sendEmail({
       email: user.email,
       subject: "Your password reset token only valid for 10 minutes",
-      message,
+      message: "Forgot your password?",
+      html: resetPasswordHtml(resetURL),
     });
-
     res.status(200).json({
       status: "success",
       message: "Token sent to email!",
@@ -167,7 +187,9 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   }
 });
 
-//* RESET PASSWORD
+/* This code exports a function called `resetPassword` that is responsible for resetting the password
+of a user. It uses the `catchAsync` function to handle any errors that may occur during the
+execution of the function. */
 exports.resetPassword = catchAsync(async (req, res, next) => {
   // 1) Get user based on the token
   const hashedToken = crypto
@@ -196,7 +218,9 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, req, res);
 });
 
-//* UPDATE PASSWORD
+/* This code exports a function called `updatePassword` that is responsible for updating the password
+of a user. It uses the `catchAsync` function to handle any errors that may occur during the
+execution of the function. */
 exports.updatePassword = catchAsync(async (req, res, next) => {
   // 1) Get user from collection
   const user = await User.findById(req.user.id).select("+password");
@@ -210,7 +234,6 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   user.password = req.body.password;
   user.passwordConfirm = req.body.passwordConfirm;
   await user.save();
-  // User.findByIdAndUpdate will NOT work as intended!
 
   // 4) Log user in, send JWT
   createSendToken(user, 200, req, res);

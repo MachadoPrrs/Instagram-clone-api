@@ -9,7 +9,7 @@ listener logs an error message and shuts down the server by calling process.exit
 important for preventing the server from continuing to run in an unstable state and potentially
 causing further issues. */
 process.on("uncaughtException", (err) => {
-  console.log("UNCAUGHT EXCEPTION! 💥 Shutting down...");
+  console.log("UNCAUGHT EXCEPTION!");
   console.log(err.name, err.message);
   process.exit(1);
 });
@@ -34,16 +34,9 @@ code inside the event listener logs an error message and shuts down the server b
 server.close() and then exiting the process with process.exit(1). This is important for preventing
 the server from continuing to run in an unstable state and potentially causing further issues. */
 process.on("unhandledRejection", (err) => {
-  console.log("UNHANDLED REJECTION! 💥 Shutting down...");
+  console.log("UNHANDLED REJECTION!");
   console.log(err.name, err.message);
   server.close(() => {
     process.exit(1);
-  });
-});
-
-process.on("SIGTERM", () => {
-  // console.log("👋 SIGTERM RECEIVED. Shutting down gracefully");
-  server.close(() => {
-    console.log("Shutting down");
   });
 });

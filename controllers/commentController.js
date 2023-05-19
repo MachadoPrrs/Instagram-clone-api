@@ -4,6 +4,8 @@ const User = require("../models/userModel");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 
+/* `exports.getAllComments` is a function that retrieves all comments from the database and sends them
+as a response to the client.*/
 exports.getAllComments = catchAsync(async (req, res, next) => {
   const comments = await Comment.find().populate("post", "author");
 
@@ -14,6 +16,7 @@ exports.getAllComments = catchAsync(async (req, res, next) => {
   });
 });
 
+/* `exports.commentPost` is a function that creates a new comment on a post. */
 exports.commentPost = catchAsync(async (req, res, next) => {
   // Comment a post
   const { _id: author } = req.user;
@@ -55,6 +58,9 @@ exports.commentPost = catchAsync(async (req, res, next) => {
   });
 });
 
+/* This code exports a function called `updateComment` that updates a comment in the database. It uses
+the `catchAsync` middleware to handle any errors that may occur during the execution of the
+function. */
 exports.updateComment = catchAsync(async (req, res, next) => {
   const { _id } = req.params;
   // check if there's a comment in the db
@@ -82,6 +88,9 @@ exports.updateComment = catchAsync(async (req, res, next) => {
   });
 });
 
+/* This code exports a function called `deleteComment` that deletes a comment from the database. It
+uses the `catchAsync` middleware to handle any errors that may occur during the execution of the
+function. */
 exports.deleteComment = catchAsync(async (req, res, next) => {
   const { _id } = req.params;
   // check if there's a comment in the db

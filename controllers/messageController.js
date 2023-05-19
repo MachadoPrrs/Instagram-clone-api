@@ -3,7 +3,12 @@ const catchAsync = require("../utils/catchAsync");
 const User = require("../models/userModel");
 const Message = require("../models/messageModel");
 
-// check if there is a video or an image
+/**
+ * The function checks if a file is present in the request and returns data with the file name if it
+ * exists, otherwise it returns data without the file name.
+ * @returns The `checkFile` function is not returning anything. It is just creating and modifying the
+ * `data` object based on the presence and type of `req.file`.
+ */
 const checkFile = (req, res, next) => {
   let data = {};
 
@@ -31,6 +36,9 @@ const checkFile = (req, res, next) => {
   return data;
 };
 
+/* This code exports a function called `sendMessage` that handles the logic for sending a message. It
+uses the `catchAsync` middleware to handle any errors that may occur during the asynchronous
+operations. */
 exports.sendMessage = catchAsync(async (req, res, next) => {
   const data = checkFile(req, res, next);
   console.log(data.sendTo);
@@ -52,6 +60,8 @@ exports.sendMessage = catchAsync(async (req, res, next) => {
   });
 });
 
+/* `exports.deleteMessage` is a function that handles the logic for deleting a message. It uses the
+`catchAsync` middleware to handle any errors that may occur during the asynchronous operations. . */
 exports.deleteMessage = catchAsync(async (req, res, next) => {
   const { _id } = req.params;
 

@@ -57,6 +57,6 @@ router.patch(
   updateMe
 );
 
-router.delete("/deleteMe", protect, validateDeleteUser, deleteMe);
+router.delete("/deleteMe", protect, deleteMe);
 
 module.exports = router;

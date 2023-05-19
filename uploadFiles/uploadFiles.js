@@ -1,6 +1,7 @@
 const multer = require("multer");
 
-// MULTER STORAGE
+/* The UploadFiles class uses multer to handle file uploads and defines paths and filters based on the
+file type. */
 class UploadFiles {
   paths = {
     video: "public/videos",

@@ -1,5 +1,7 @@
 const populateOptions = require("./populate");
 
+/* The QueryBuilder class provides methods for filtering, sorting, limiting fields, and paginating
+queries in MongoDB. */
 class QueryBuilder {
   constructor(query, queryString) {
     this.query = query;
