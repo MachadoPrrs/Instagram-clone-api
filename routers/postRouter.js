@@ -18,42 +18,57 @@ const {
 const { protect } = require("../controllers/authController");
 
 const {
-  validateDeletePost,
-  validateCreatePost,
-  validateUpdatePost,
-  validateGetById,
+  validateImage,
+  valdiataUpdateImage,
+  verifyID,
+  validateVideo,
+  valdiataUpdateVideo,
 } = require("../validators/postValidator");
 
 const router = express.Router();
-
+// GET ALL USERS
 router.get("/", protect, getAllPosts);
+// GET FEED
 router.get("/getFeed", protect, getNewsFeed);
-
-router.post("/image", protect, uploadIMG.single("image"), createPost);
-router.post("/video", protect, uploadVIDEO.single("video"), createPost);
-
-router.get("/:_id", protect, validateGetById, getPostById);
-
+// POST WITH IMAGE
+router.post(
+  "/image",
+  protect,
+  uploadIMG.single("image"),
+  validateImage,
+  createPost
+);
+// POST WITH VIDEO
+router.post(
+  "/video",
+  protect,
+  uploadVIDEO.single("video"),
+  validateVideo,
+  createPost
+);
+// GET A POST BY ID
+router.get("/:_id", protect, verifyID, getPostById);
+// UPDATE A POST WITH IMAGE
 router.patch(
   "/patchImage/:_id",
   protect,
-  validateUpdatePost,
+  valdiataUpdateImage,
   uploadIMG.single("image"),
   updatePost
 );
-
+// UPDATE A POST WITH VIDEO
 router.patch(
   "/patchVideo/:_id",
   protect,
-  validateUpdatePost,
+  valdiataUpdateVideo,
   uploadVIDEO.single("video"),
   updatePost
 );
-
-router.patch("/likePost/:_id", protect, likePost);
-
-router.delete("/:_id", protect, validateDeletePost, deletePost);
-router.delete("/likePost/:_id", protect, removeLike);
+// LIKE POST
+router.patch("/likePost/:_id", protect, verifyID, likePost);
+// DELETE POST
+router.delete("/:_id", protect, verifyID, deletePost);
+// DELETE LIKE
+router.delete("/likePost/:_id", protect, verifyID, removeLike);
 
 module.exports = router;
-//! añadir validaciones de delete y crear post

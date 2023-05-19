@@ -8,12 +8,17 @@ const {
 } = require("../controllers/commentController");
 const { protect } = require("../controllers/authController");
 
+const {
+  verifyID,
+  validateComment,
+  validateUpdate,
+} = require("../validators/commentValidator");
+
 const router = express.Router();
 
-//! AGREGAR VALIDACIONES
 router.get("/", protect, getAllComments);
-router.post("/", protect, commentPost);
-router.patch("/:_id", protect, updateComment);
-router.delete("/:_id", protect, deleteComment);
+router.post("/", protect, validateComment, commentPost);
+router.patch("/:_id", protect, validateUpdate, updateComment);
+router.delete("/:_id", protect, verifyID, deleteComment);
 
 module.exports = router;

@@ -205,6 +205,16 @@ exports.updatePost = catchAsync(async (req, res, next) => {
       ? { ...req.body, image: req.file.filename }
       : null;
 
+  if (req.body.taggedUsers && req.body.taggedUsers.length > 0) {
+    const taggedUsers = await User.find({
+      username: { $in: req.body.taggedUsers },
+    });
+    if (taggedUsers.length !== req.body.taggedUsers.length) {
+      return next(new AppError("One or more tagged users not found", 404));
+    }
+    data.taggedUsers = taggedUsers.map((user) => user._id);
+  }
+
   const updatedPost = await Post.findByIdAndUpdate(_id, data, {
     new: true,
     runValidators: true,
@@ -244,5 +254,3 @@ exports.deletePost = catchAsync(async (req, res, next) => {
     data: null,
   });
 });
-
-//TODO: Add a feature send message and search posts or users

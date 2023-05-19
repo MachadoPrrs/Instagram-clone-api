@@ -118,7 +118,7 @@ exports.validateUpdatePassword = [
   },
 ];
 exports.validateDeleteUser = [
-  param("/:_id").isMongoId().withMessage("Invalid id"),
+  param("/_id").isMongoId().withMessage("Invalid id"),
   (req, res, next) => {
     validateResult(req, res, next);
   },

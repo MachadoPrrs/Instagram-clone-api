@@ -65,7 +65,7 @@ exports.updateComment = catchAsync(async (req, res, next) => {
   //check the comment owner
   if (comment.author.toString() !== req.user.id.toString()) {
     return next(
-      new AppError("You don't have permission to edit this comment.", 403)
+      new AppError("You do not have permission to edit this comment.", 403)
     );
   }
   // update the comment
