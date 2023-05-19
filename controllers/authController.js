@@ -1,4 +1,3 @@
-const { promisify } = require("util");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 
@@ -122,7 +121,15 @@ exports.protect = catchAsync(async (req, res, next) => {
     );
   }
   // check the token
-  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  const decoded = await new Promise((resolve, reject) => {
+    jwt.verify(token, process.env.JWT_SECRET, (error, decodedToken) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(decodedToken);
+      }
+    });
+  });
   // Check if user still exists
   const currentUser = await User.findById(decoded.id);
   if (!currentUser) {
